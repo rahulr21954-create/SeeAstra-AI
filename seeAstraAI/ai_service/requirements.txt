@@ -4,4 +4,3 @@ pymupdf
 python-multipart
 pydantic-settings
 pytesseract
-tesseract-ocr
