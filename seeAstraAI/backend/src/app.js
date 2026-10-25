@@ -21,19 +21,23 @@ app.use(helmet());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.FRONTEND_URL,
+  "https://seeastra-ai.onrender.com",
+  // Yahan apne deployed frontend ka exact URL add karo
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests without an Origin header (e.g. health checks)
+      // Requests without an Origin header, such as server-to-server
+      // requests or some health checks, are allowed.
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
+      console.error("Blocked CORS origin:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
+    credentials: true,
   })
 );
 app.use(express.json({ limit: "1mb" }));
