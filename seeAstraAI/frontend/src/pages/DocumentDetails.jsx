@@ -1,13 +1,12 @@
-
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 
 const primaryButton =
-  "inline-flex items-center justify-center rounded-lg bg-[#245642] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1c4433] disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center justify-center rounded-lg bg-[#20364B] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#172A3B] focus:outline-none focus:ring-2 focus:ring-[#B7C9D9] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
 
 const secondaryButton =
-  "inline-flex items-center justify-center rounded-lg border border-[#DFE6DE] bg-white px-4 py-2.5 text-sm font-medium text-[#294538] transition hover:bg-[#F1F5F0]";
+  "inline-flex items-center justify-center rounded-lg border border-[#D2DEE8] bg-white px-4 py-2.5 text-sm font-medium text-[#20364B] transition hover:border-[#B7C9D9] hover:bg-[#F0F4F8] focus:outline-none focus:ring-2 focus:ring-[#B7C9D9] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
 
 function unwrap(response) {
   return response?.data?.data ?? response?.data ?? {};
@@ -80,7 +79,7 @@ function statusStyle(status) {
     value.includes("complete") ||
     value.includes("verified")
   ) {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    return "border-[#B7D6C3] bg-[#EDF6F0] text-[#397454]";
   }
 
   if (
@@ -88,10 +87,10 @@ function statusStyle(status) {
     value.includes("pending") ||
     value.includes("processing")
   ) {
-    return "border-amber-200 bg-amber-50 text-amber-700";
+    return "border-amber-200 bg-amber-50 text-[#A86416]";
   }
 
-  return "border-[#DFE6DE] bg-[#F1F5F0] text-[#52665A]";
+  return "border-[#D2DEE8] bg-[#F3F6F9] text-[#52677B]";
 }
 
 function getFindings(document) {
@@ -167,7 +166,9 @@ function getFindingDescription(finding) {
 }
 
 function getFindingSeverity(finding) {
-  if (!finding || typeof finding !== "object") return "Information";
+  if (!finding || typeof finding !== "object") {
+    return "Information";
+  }
 
   return safeText(
     firstValue(
@@ -196,15 +197,25 @@ function formatDate(value) {
       });
 }
 
-function InfoCard({ label, value, description }) {
+function InfoCard({ label, value, description, icon }) {
   return (
-    <article className="rounded-2xl border border-[#DFE6DE] bg-white p-5">
-      <p className="text-sm text-[#68786D]">{label}</p>
-      <p className="mt-2 break-words text-base font-semibold text-[#294538]">
+    <article className="group rounded-2xl border border-[#D2DEE8] bg-white p-5 shadow-[0_2px_8px_rgba(32,54,75,0.025)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#B7C9D9] hover:shadow-[0_8px_24px_rgba(32,54,75,0.06)]">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium text-[#637282]">
+          {label}
+        </p>
+
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#D2DEE8] bg-[#EDF2F6] text-xs font-bold text-[#20364B] transition-colors group-hover:bg-[#DCE6EF]">
+          {icon}
+        </span>
+      </div>
+
+      <p className="mt-4 break-words text-xl font-semibold tracking-tight text-[#20364B]">
         {safeText(value)}
       </p>
+
       {description && (
-        <p className="mt-2 text-xs leading-5 text-[#879188]">
+        <p className="mt-2 text-xs leading-5 text-[#7A8794]">
           {description}
         </p>
       )}
@@ -239,7 +250,7 @@ export default function DocumentDetails() {
     try {
       const response = await api.get(
         `/documents/${encodeURIComponent(id)}/analysis`
-        );
+      );
 
       const payload = unwrap(response);
       const result = firstValue(
@@ -248,8 +259,14 @@ export default function DocumentDetails() {
         payload
       );
 
-      if (!result || typeof result !== "object" || Array.isArray(result)) {
-        throw new Error("The server returned an invalid document response.");
+      if (
+        !result ||
+        typeof result !== "object" ||
+        Array.isArray(result)
+      ) {
+        throw new Error(
+          "The server returned an invalid document response."
+        );
       }
 
       setDocument(result);
@@ -279,7 +296,6 @@ export default function DocumentDetails() {
     setError("");
 
     try {
-      // This endpoint must exist in your backend.
       const response = await api.post(
         `/documents/${encodeURIComponent(id)}/analyze`
       );
@@ -290,7 +306,10 @@ export default function DocumentDetails() {
         payload?.item
       );
 
-      if (updatedDocument && typeof updatedDocument === "object") {
+      if (
+        updatedDocument &&
+        typeof updatedDocument === "object"
+      ) {
         setDocument(updatedDocument);
       } else {
         await loadDocument();
@@ -307,11 +326,21 @@ export default function DocumentDetails() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#FAFBF9] p-6">
-        <div className="mx-auto max-w-7xl space-y-4">
-          <div className="h-8 w-64 animate-pulse rounded bg-[#E8EDE7]" />
-          <div className="h-32 animate-pulse rounded-2xl bg-[#F1F5F0]" />
-          <div className="h-64 animate-pulse rounded-2xl bg-[#F1F5F0]" />
+      <main className="min-h-screen bg-[#F4F7FA] px-5 py-8 sm:px-8">
+        <div className="mx-auto max-w-7xl space-y-5">
+          <div className="h-5 w-40 animate-pulse rounded bg-[#D2DEE8]" />
+          <div className="h-36 animate-pulse rounded-2xl border border-[#D2DEE8] bg-white" />
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="h-32 animate-pulse rounded-2xl border border-[#D2DEE8] bg-white"
+              />
+            ))}
+          </div>
+
+          <div className="h-64 animate-pulse rounded-2xl border border-[#D2DEE8] bg-white" />
         </div>
       </main>
     );
@@ -319,16 +348,29 @@ export default function DocumentDetails() {
 
   if (!document) {
     return (
-      <main className="min-h-screen bg-[#FAFBF9] px-5 py-16 text-[#20392D]">
-        <div className="mx-auto max-w-xl rounded-2xl border border-[#DFE6DE] bg-white p-8 text-center">
-          <h1 className="text-xl font-semibold">Document unavailable</h1>
-          <p className="mt-3 text-sm leading-6 text-[#68786D]">
+      <main className="flex min-h-screen items-start justify-center bg-[#F4F7FA] px-5 py-16 text-[#29333D]">
+        <div className="w-full max-w-xl rounded-2xl border border-[#D2DEE8] bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#D2DEE8] bg-[#EDF2F6] text-2xl text-[#20364B]">
+            !
+          </div>
+
+          <h1 className="mt-4 text-xl font-semibold text-[#20364B]">
+            Document unavailable
+          </h1>
+
+          <p className="mt-3 text-sm leading-6 text-[#637282]">
             {error || "The requested document could not be found."}
           </p>
+
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <button onClick={loadDocument} className={primaryButton}>
+            <button
+              type="button"
+              onClick={loadDocument}
+              className={primaryButton}
+            >
               Try again
             </button>
+
             <Link to="/documents" className={secondaryButton}>
               All documents
             </Link>
@@ -344,6 +386,7 @@ export default function DocumentDetails() {
   const findings = getFindings(document);
   const missingFields = getMissingFields(document);
   const extractedData = getExtractedData(document);
+
   const extractedEntries =
     extractedData &&
     typeof extractedData === "object" &&
@@ -384,33 +427,37 @@ export default function DocumentDetails() {
   );
 
   return (
-    <main className="min-h-screen bg-[#FAFBF9] text-[#20392D]">
-      
-
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10">
+    <main className="min-h-screen bg-[#B7C9D9] text-[#29333D]">
+      <div className="mx-auto max-w-7xl px-4 py-7 sm:px-8 sm:py-10">
+        {/* Page navigation */}
         <Link
           to="/documents"
-          className="text-sm font-medium text-[#52745F] hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-medium text-[#526D86] transition hover:text-[#20364B] hover:underline hover:underline-offset-4"
         >
-          ← Back to documents
+          <span aria-hidden="true">←</span>
+          Back to documents
         </Link>
 
-        <section className="mt-5 rounded-2xl border border-[#DFE6DE] bg-white p-6 sm:p-8">
-          <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
+        {/* Document header */}
+        <section className="mt-5 rounded-2xl border border-[#D2DEE8] bg-white p-5 shadow-[0_2px_10px_rgba(32,54,75,0.025)] sm:p-8">
+          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[#52745F]">
-                DOCUMENT REVIEW
-              </p>
+              <div className="mb-3 flex items-center gap-2">
+                <span className="h-1 w-7 rounded-full bg-[#7896B0]" />
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#526D86]">
+                  Document review
+                </p>
+              </div>
 
-              <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight sm:text-3xl">
+              <h1 className="break-words text-2xl font-semibold tracking-tight text-[#20364B] sm:text-3xl">
                 {safeText(name)}
               </h1>
 
-              <p className="mt-3 text-sm text-[#758278]">
+              <p className="mt-3 text-sm text-[#637282]">
                 Uploaded: {formatDate(uploadedAt)}
               </p>
 
-              <p className="mt-1 break-all text-xs text-[#879188]">
+              <p className="mt-1 break-all text-xs text-[#7A8794]">
                 Document ID: {safeText(document._id ?? document.id ?? id)}
               </p>
             </div>
@@ -428,7 +475,8 @@ export default function DocumentDetails() {
                 disabled={loading}
                 className={secondaryButton}
               >
-                ↻ Refresh
+                <span aria-hidden="true">↻</span>
+                Refresh
               </button>
 
               <button
@@ -443,76 +491,106 @@ export default function DocumentDetails() {
           </div>
         </section>
 
+        {/* Error message */}
         {error && (
           <div
             role="alert"
             className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800"
           >
-            {error}
+            <p className="font-semibold">Something needs attention</p>
+            <p className="mt-1 break-words">{error}</p>
           </div>
         )}
 
+        {/* Overview cards */}
         <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <InfoCard
+            icon="D"
             label="Document status"
             value={humanize(status)}
             description="Current status returned by the backend"
           />
+
           <InfoCard
+            icon="F"
             label="AI findings"
             value={findings.length}
             description="Findings available in the returned analysis"
           />
+
           <InfoCard
+            icon="M"
             label="Missing fields"
             value={missingFields.length}
             description="Fields identified as missing"
           />
+
           <InfoCard
+            icon="A"
             label="Analysis status"
             value={humanize(analysisStatus)}
             description="Processing status reported by the backend"
           />
         </section>
 
+        {/* Extracted data and missing fields */}
         <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <article className="rounded-2xl border border-[#DFE6DE] bg-white p-6">
-            <h2 className="text-lg font-semibold">
-              Extracted information
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-[#758278]">
-              Fields extracted from the document, when provided by the backend.
-            </p>
+          <article className="rounded-2xl border border-[#D2DEE8] bg-white p-5 shadow-[0_2px_10px_rgba(32,54,75,0.02)] sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#D2DEE8] bg-[#EDF2F6] font-semibold text-[#20364B]">
+                E
+              </div>
+
+              <div>
+                <h2 className="text-lg font-semibold text-[#20364B]">
+                  Extracted information
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-[#7A8794]">
+                  Fields extracted from the document, when provided by the backend.
+                </p>
+              </div>
+            </div>
 
             {extractedEntries.length > 0 ? (
-              <dl className="mt-5 divide-y divide-[#EEF1EC]">
+              <dl className="mt-5 divide-y divide-[#EAF0F4]">
                 {extractedEntries.map(([key, value]) => (
                   <div
                     key={key}
                     className="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4"
                   >
-                    <dt className="text-sm font-medium text-[#52665A]">
+                    <dt className="text-sm font-medium text-[#526273]">
                       {humanize(key)}
                     </dt>
-                    <dd className="break-words text-sm leading-6 text-[#294538] sm:col-span-2">
+
+                    <dd className="break-words text-sm leading-6 text-[#29333D] sm:col-span-2">
                       {safeText(value)}
                     </dd>
                   </div>
                 ))}
               </dl>
             ) : (
-              <div className="mt-5 rounded-xl bg-[#F1F5F0] p-5 text-sm leading-6 text-[#68786D]">
+              <div className="mt-5 rounded-xl border border-dashed border-[#D2DEE8] bg-[#F8FAFC] p-5 text-sm leading-6 text-[#637282]">
                 No extracted fields were returned. Check whether PDF text
                 extraction or OCR has completed in the backend.
               </div>
             )}
           </article>
 
-          <article className="rounded-2xl border border-[#DFE6DE] bg-white p-6">
-            <h2 className="text-lg font-semibold">Missing fields</h2>
-            <p className="mt-1 text-sm leading-6 text-[#758278]">
-              Potentially incomplete information that may need attention.
-            </p>
+          <article className="rounded-2xl border border-[#D2DEE8] bg-white p-5 shadow-[0_2px_10px_rgba(32,54,75,0.02)] sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 font-semibold text-[#A86416]">
+                !
+              </div>
+
+              <div>
+                <h2 className="text-lg font-semibold text-[#20364B]">
+                  Missing fields
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-[#7A8794]">
+                  Potentially incomplete information that may need attention.
+                </p>
+              </div>
+            </div>
 
             {missingFields.length > 0 ? (
               <ul className="mt-5 space-y-3">
@@ -524,6 +602,7 @@ export default function DocumentDetails() {
                     <p className="text-sm font-medium text-amber-900">
                       {getFindingTitle(field, index)}
                     </p>
+
                     {typeof field === "object" && field !== null && (
                       <p className="mt-1 text-sm leading-6 text-amber-800">
                         {getFindingDescription(field)}
@@ -533,7 +612,7 @@ export default function DocumentDetails() {
                 ))}
               </ul>
             ) : (
-              <div className="mt-5 rounded-xl bg-[#F1F5F0] p-5 text-sm leading-6 text-[#68786D]">
+              <div className="mt-5 rounded-xl border border-dashed border-[#D2DEE8] bg-[#F8FAFC] p-5 text-sm leading-6 text-[#637282]">
                 No missing fields were reported. This does not by itself
                 establish that the document is complete or valid.
               </div>
@@ -541,19 +620,27 @@ export default function DocumentDetails() {
           </article>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-[#DFE6DE] bg-white p-6 sm:p-8">
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+        {/* AI findings */}
+        <section className="mt-6 rounded-2xl border border-[#D2DEE8] bg-white p-5 shadow-[0_2px_10px_rgba(32,54,75,0.02)] sm:p-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div>
-              <h2 className="text-lg font-semibold">
-                AI findings and consistency checks
-              </h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-[#758278]">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#D2DEE8] bg-[#EDF2F6] font-semibold text-[#20364B]">
+                  AI
+                </div>
+
+                <h2 className="text-lg font-semibold text-[#20364B]">
+                  AI findings and consistency checks
+                </h2>
+              </div>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-[#637282]">
                 Review potential issues identified by the system. AI findings
                 are suggestions for verification, not final regulatory decisions.
               </p>
             </div>
 
-            <span className="rounded-full border border-[#DFE6DE] bg-[#F1F5F0] px-3 py-1.5 text-xs font-medium text-[#52665A]">
+            <span className="w-fit rounded-full border border-[#D2DEE8] bg-[#EDF2F6] px-3 py-1.5 text-xs font-medium text-[#20364B]">
               {findings.length} finding{findings.length === 1 ? "" : "s"}
             </span>
           </div>
@@ -567,19 +654,20 @@ export default function DocumentDetails() {
                       ? finding._id ?? finding.id ?? index
                       : index
                   }
-                  className="rounded-xl border border-[#E8EDE7] p-5"
+                  className="rounded-xl border border-[#D2DEE8] bg-[#FCFDFE] p-4 transition-colors hover:border-[#B7C9D9] sm:p-5"
                 >
                   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                     <div>
-                      <h3 className="break-words text-sm font-semibold text-[#294538]">
+                      <h3 className="break-words text-sm font-semibold text-[#20364B]">
                         {getFindingTitle(finding, index)}
                       </h3>
-                      <p className="mt-2 break-words text-sm leading-6 text-[#68786D]">
+
+                      <p className="mt-2 break-words text-sm leading-6 text-[#637282]">
                         {getFindingDescription(finding)}
                       </p>
                     </div>
 
-                    <span className="w-fit shrink-0 rounded-full border border-[#DFE6DE] bg-[#F1F5F0] px-3 py-1 text-xs text-[#52665A]">
+                    <span className="w-fit shrink-0 rounded-full border border-[#D2DEE8] bg-[#EDF2F6] px-3 py-1 text-xs text-[#526273]">
                       {humanize(getFindingSeverity(finding))}
                     </span>
                   </div>
@@ -587,11 +675,16 @@ export default function DocumentDetails() {
               ))}
             </div>
           ) : (
-            <div className="mt-6 rounded-xl border border-dashed border-[#DFE6DE] bg-[#FAFBF9] p-8 text-center">
-              <h3 className="font-medium text-[#294538]">
+            <div className="mt-6 rounded-xl border border-dashed border-[#D2DEE8] bg-[#F8FAFC] p-8 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#D2DEE8] bg-[#EDF2F6] text-xl text-[#20364B]">
+                ✓
+              </div>
+
+              <h3 className="mt-3 font-semibold text-[#20364B]">
                 No findings available
               </h3>
-              <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#758278]">
+
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#7A8794]">
                 The backend has not returned any findings for this document.
                 This may mean analysis has not run, is still processing, or
                 the response uses a different field structure.
@@ -599,31 +692,58 @@ export default function DocumentDetails() {
             </div>
           )}
 
-          <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
-            <p className="text-sm font-semibold text-blue-900">
-              Human verification
-            </p>
-            <p className="mt-1 text-sm leading-6 text-blue-800">
-              {reviewRequired === true
-                ? "The backend indicates that human review is required."
-                : reviewRequired === false
-                  ? "The backend indicates that human review is not flagged as required. Follow your organisation's review policy."
-                  : "Review requirement was not specified by the backend. A reviewer should verify important findings before making a decision."}
-            </p>
+          {/* Human review notice */}
+          <div className="mt-6 rounded-xl border border-[#D2DEE8] bg-[#EAF0F5] p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#D2DEE8] bg-white font-semibold text-[#20364B]">
+                i
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-[#20364B]">
+                  Human verification
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-[#526273]">
+                  {reviewRequired === true
+                    ? "The backend indicates that human review is required."
+                    : reviewRequired === false
+                      ? "The backend indicates that human review is not flagged as required. Follow your organisation's review policy."
+                      : "Review requirement was not specified by the backend. A reviewer should verify important findings before making a decision."}
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <footer className="mt-8 rounded-xl border border-[#DFE6DE] bg-[#F1F5F0] p-5">
-          <h2 className="text-sm font-semibold text-[#294538]">
-            Review integrity
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-[#617267]">
-            This page displays information returned by the backend. Missing
-            fields or inconsistencies should be verified against the original
-            documents. AI output alone should not determine approval or rejection.
-          </p>
+        {/* Review integrity */}
+        <footer className="mt-6 rounded-2xl border border-[#D2DEE8] bg-[#EAF0F5] p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#D2DEE8] bg-white font-semibold text-[#20364B]">
+              i
+            </div>
+
+            <div>
+              <h2 className="text-sm font-semibold text-[#20364B]">
+                Review integrity
+              </h2>
+
+              <p className="mt-2 text-sm leading-6 text-[#526273]">
+                This page displays information returned by the backend. Missing
+                fields or inconsistencies should be verified against the original
+                documents. AI output alone should not determine approval or rejection.
+              </p>
+            </div>
+          </div>
         </footer>
+
+        <div className="mt-6 border-t border-[#D2DEE8] pt-4">
+          <p className="text-center text-xs text-[#7A8794]">
+            SeeAstra AI · Document verification &amp; compliance
+          </p>
+        </div>
       </div>
     </main>
   );
 }
+

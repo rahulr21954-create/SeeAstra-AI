@@ -1,5 +1,5 @@
-
 import { NavLink, Link, useNavigate } from "react-router-dom";
+
 import {
   ShieldCheck,
   LayoutDashboard,
@@ -7,7 +7,6 @@ import {
   Upload,
   ClipboardCheck,
   History,
-  FileSearch,
   LogIn,
   UserPlus,
   LogOut,
@@ -22,15 +21,16 @@ const navItems = [
 ];
 
 const navLinkClass = ({ isActive }) =>
-  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+  `group flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-200 ${
     isActive
-      ? "bg-[#E8F0E8] text-[#245642]"
-      : "text-[#52645A] hover:bg-[#F0F4EF] hover:text-[#20392D]"
+      ? "border-white/20 bg-white text-[#20364B]"
+      : "border-transparent text-white/85 hover:border-white/15 hover:bg-white/10 hover:text-white"
   }`;
 
 export default function Navbar() {
   const navigate = useNavigate();
   const isLoggedIn = Boolean(localStorage.getItem("token"));
+
   const lastDocumentId = localStorage.getItem("lastDocumentId");
 
   function handleLogout() {
@@ -49,44 +49,44 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#DFE6DE] bg-[#FAFBF9]/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#245642] text-white">
-            <ShieldCheck size={23} />
+    <header className="sticky top-0 z-50 border-b border-[#14283B] bg-[#20364B] shadow-[0_4px_14px_rgba(20,40,59,0.18)]">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        {/* Brand */}
+        <Link
+          to="/"
+          className="group flex shrink-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white text-[#20364B] shadow-sm transition-transform duration-200 group-hover:scale-[1.04]">
+            <ShieldCheck size={22} strokeWidth={1.8} />
           </span>
 
-          <span className="text-lg font-bold tracking-tight text-[#20392D]">
-            SeeAstra <span className="text-[#39805E]">AI</span>
+          <span className="text-lg font-bold tracking-tight text-white">
+            SeeAstra <span className="text-[#B7C9D9]">AI</span>
           </span>
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-1">
-          {isLoggedIn && (
-            <>
-              {navItems.slice(0, 3).map(({ label, to, icon: Icon }) => (
-                <NavLink key={to} to={to} className={navLinkClass}>
-                  <Icon size={16} />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
-
-              
-
-              {navItems.slice(3).map(({ label, to, icon: Icon }) => (
-                <NavLink key={to} to={to} className={navLinkClass}>
-                  <Icon size={16} />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
-            </>
-          )}
+        {/* Navigation */}
+        <nav
+          aria-label="Main navigation"
+          className="flex flex-wrap items-center gap-1"
+        >
+          {isLoggedIn &&
+            navItems.map(({ label, to, icon: Icon }) => (
+              <NavLink key={to} to={to} className={navLinkClass}>
+                <Icon
+                  size={16}
+                  strokeWidth={1.8}
+                  className="shrink-0"
+                />
+                <span>{label}</span>
+              </NavLink>
+            ))}
 
           {!isLoggedIn ? (
             <>
               <Link
                 to="/login"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#245642] hover:bg-[#F0F4EF]"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <LogIn size={16} />
                 Login
@@ -94,7 +94,7 @@ export default function Navbar() {
 
               <Link
                 to="/signup"
-                className="flex items-center gap-2 rounded-lg bg-[#245642] px-3 py-2 text-sm font-semibold text-white hover:bg-[#1B4432]"
+                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#20364B] shadow-sm transition-colors hover:bg-[#DCE8F2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#20364B]"
               >
                 <UserPlus size={16} />
                 Sign up
@@ -104,7 +104,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center gap-2 rounded-lg border border-[#DFE6DE] px-3 py-2 text-sm font-medium text-[#52645A] hover:bg-[#F0F4EF]"
+              className="ml-1 flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition-colors hover:border-white/50 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               <LogOut size={16} />
               Logout
@@ -115,3 +115,4 @@ export default function Navbar() {
     </header>
   );
 }
+

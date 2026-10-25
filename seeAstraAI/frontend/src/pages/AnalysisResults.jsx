@@ -1,13 +1,12 @@
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 
 const primaryButton =
-  "inline-flex items-center justify-center rounded-lg bg-[#245642] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1c4433] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-lg bg-[#20364B] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#2D4A63] disabled:cursor-not-allowed disabled:opacity-50";
 
 const secondaryButton =
-  "inline-flex items-center justify-center rounded-lg border border-[#DFE6DE] bg-white px-4 py-2.5 text-sm font-medium text-[#294538] hover:bg-[#F1F5F0]";
+  "inline-flex items-center justify-center rounded-lg border border-[#D2DEE8] bg-white px-4 py-2.5 text-sm font-medium text-[#20364B] transition-colors duration-200 hover:bg-[#EEF3F7]";
 
 function unwrap(response) {
   return response?.data?.data ?? response?.data ?? {};
@@ -64,7 +63,6 @@ function getName(document) {
   );
 }
 
-
 function getAnalysis(document) {
   const result =
     document?.analysisResult ??
@@ -76,7 +74,6 @@ function getAnalysis(document) {
     return {};
   }
 
-  // Support responses where findings are nested inside "analysis".
   const nestedAnalysis = result.analysis;
 
   if (
@@ -92,7 +89,6 @@ function getAnalysis(document) {
 
   return result;
 }
-
 
 function getFindings(analysis) {
   return asArray(
@@ -141,14 +137,14 @@ function severityStyle(value) {
     severity.includes("critical") ||
     severity.includes("error")
   ) {
-    return "border-red-200 bg-red-50 text-red-700";
+    return "border-red-200 bg-red-50 text-[#B83232]";
   }
 
   if (severity.includes("medium") || severity.includes("warning")) {
-    return "border-amber-200 bg-amber-50 text-amber-800";
+    return "border-amber-200 bg-amber-50 text-[#A86416]";
   }
 
-  return "border-[#DFE6DE] bg-[#F1F5F0] text-[#52665A]";
+  return "border-[#D2DEE8] bg-[#EEF3F7] text-[#526579]";
 }
 
 function findingTitle(item, index) {
@@ -180,39 +176,64 @@ function findingSeverity(item) {
   if (!item || typeof item !== "object") return "Information";
 
   return safeText(
-    item?.severity ?? item?.risk_level ?? item?.riskLevel ?? item?.priority ?? "Information"
+    item?.severity ??
+      item?.risk_level ??
+      item?.riskLevel ??
+      item?.priority ??
+      "Information"
   );
 }
 
-function ResultCard({ label, value, detail }) {
+function ResultCard({ label, value, detail, accent = false }) {
   return (
-    <article className="rounded-2xl border border-[#DFE6DE] bg-white p-5">
-      <p className="text-sm text-[#68786D]">{label}</p>
-      <p className="mt-3 break-words text-2xl font-semibold text-[#294538]">
+    <article className="group rounded-xl border border-[#D2DEE8] bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#A8BDCF] hover:shadow-md">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium text-[#647587]">{label}</p>
+        <span
+          className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${
+            accent ? "bg-[#A86416]" : "bg-[#7E9BB5]"
+          }`}
+        />
+      </div>
+
+      <p className="mt-3 break-words text-2xl font-semibold tracking-tight text-[#20364B]">
         {value}
       </p>
-      <p className="mt-2 text-xs leading-5 text-[#879188]">{detail}</p>
+
+      <p className="mt-2 text-xs leading-5 text-[#788797]">{detail}</p>
     </article>
   );
 }
 
-function DataSection({ title, description, children }) {
+function DataSection({ title, description, children, className = "" }) {
   return (
-    <section className="rounded-2xl border border-[#DFE6DE] bg-white p-5 sm:p-6">
-      <h2 className="text-lg font-semibold text-[#294538]">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-[#758278]">{description}</p>
-      <div className="mt-5">{children}</div>
+    <section
+      className={`min-w-0 rounded-xl border border-[#D2DEE8] bg-white p-5 shadow-sm sm:p-6 ${className}`}
+    >
+      <div className="border-b border-[#E7EDF2] pb-4">
+        <h2 className="text-lg font-semibold tracking-tight text-[#20364B]">
+          {title}
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-[#718092]">
+          {description}
+        </p>
+      </div>
+
+      <div className="pt-5">{children}</div>
     </section>
+  );
+}
+
+function EmptyState({ children }) {
+  return (
+    <div className="rounded-lg border border-dashed border-[#D2DEE8] bg-[#F5F8FA] p-5 text-sm leading-6 text-[#647587]">
+      {children}
+    </div>
   );
 }
 
 export default function AnalysisResults() {
   const { id } = useParams();
-  useEffect(() => {
-  if (id) {
-    localStorage.setItem("lastDocumentId", id);
-  }
-}, [id]);
   const navigate = useNavigate();
 
   const [document, setDocument] = useState(null);
@@ -227,6 +248,12 @@ export default function AnalysisResults() {
   const [error, setError] = useState("");
   const [consistencyError, setConsistencyError] = useState("");
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    if (id) {
+      localStorage.setItem("lastDocumentId", id);
+    }
+  }, [id]);
 
   const loadAnalysis = useCallback(async () => {
     if (!localStorage.getItem("token")) {
@@ -275,7 +302,10 @@ export default function AnalysisResults() {
   }, [id, navigate]);
 
   const loadDocuments = useCallback(async () => {
-    if (!localStorage.getItem("token")) return;
+    if (!localStorage.getItem("token")) {
+      setLoadingDocuments(false);
+      return;
+    }
 
     setLoadingDocuments(true);
 
@@ -342,6 +372,7 @@ export default function AnalysisResults() {
   function toggleDocument(documentId) {
     setSelectedIds((current) => {
       if (current.includes(documentId)) {
+        setConsistencyError("");
         return current.filter((value) => value !== documentId);
       }
 
@@ -368,6 +399,7 @@ export default function AnalysisResults() {
       );
 
       const payload = unwrap(response);
+
       setNotice(
         payload?.message ??
           "Analysis request completed. Refreshing the saved results."
@@ -394,7 +426,7 @@ export default function AnalysisResults() {
   async function runConsistencyCheck() {
     const ids = [String(id), ...selectedIds.map(String)];
 
-    if (ids.length < 2) {
+    if (!id || ids.length < 2) {
       setConsistencyError(
         "Select at least one additional document to compare with this document."
       );
@@ -416,10 +448,7 @@ export default function AnalysisResults() {
       });
 
       const payload = unwrap(response);
-
-setConsistencyResult(
-  payload?.analysis ?? payload
-);
+      setConsistencyResult(payload?.analysis ?? payload);
     } catch (err) {
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
@@ -438,11 +467,19 @@ setConsistencyResult(
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#FAFBF9] p-6">
-        <div className="mx-auto max-w-7xl space-y-4">
-          <div className="h-8 w-72 animate-pulse rounded bg-[#E8EDE7]" />
-          <div className="h-32 animate-pulse rounded-2xl bg-[#F1F5F0]" />
-          <div className="h-56 animate-pulse rounded-2xl bg-[#F1F5F0]" />
+      <main className="min-h-screen bg-[#F4F7FA] px-5 py-8 sm:px-8">
+        <div className="mx-auto max-w-7xl space-y-5">
+          <div className="h-16 animate-pulse rounded-xl bg-[#D2DEE8]" />
+          <div className="h-36 animate-pulse rounded-xl bg-white" />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="h-32 animate-pulse rounded-xl bg-white"
+              />
+            ))}
+          </div>
+          <div className="h-64 animate-pulse rounded-xl bg-white" />
         </div>
       </main>
     );
@@ -450,10 +487,33 @@ setConsistencyResult(
 
   if (!document) {
     return (
-      <main className="min-h-screen bg-[#FAFBF9] px-5 py-16 text-[#20392D]">
-        <div className="mx-auto max-w-xl rounded-2xl border border-[#DFE6DE] bg-white p-8 text-center">
-          <h1 className="text-xl font-semibold">Analysis unavailable</h1>
-          <p className="mt-3 text-sm leading-6 text-[#68786D]">{error}</p>
+      <main className="flex min-h-screen items-center justify-center bg-[#F4F7FA] px-5 py-16 text-[#29333D]">
+        <div className="w-full max-w-xl rounded-xl border border-[#D2DEE8] bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#EEF3F7] text-[#20364B]">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              className="h-7 w-7"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 8v4m0 4h.01M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3l-7.5-13.1a2 2 0 0 0-3.4 0Z"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          <h1 className="mt-4 text-xl font-semibold text-[#20364B]">
+            Analysis unavailable
+          </h1>
+
+          <p className="mt-3 text-sm leading-6 text-[#718092]">
+            {error || "The requested document analysis could not be loaded."}
+          </p>
+
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button onClick={loadAnalysis} className={primaryButton}>
               Try again
@@ -473,63 +533,62 @@ setConsistencyResult(
     analysis.status ?? document.analysisStatus ?? "Not specified";
 
   return (
-    <main className="min-h-screen bg-[#FAFBF9] text-[#20392D]">
-      <header className="border-b border-[#DFE6DE] bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#245642] text-lg font-semibold text-white">
-              S
-            </span>
-            <span>
-              <span className="block text-base font-semibold">SeeAstra AI</span>
-              <span className="block text-xs text-[#758278]">
-                Analysis and consistency review
-              </span>
-            </span>
-          </Link>
-          <nav className="flex flex-wrap gap-3">
-            <Link to="/dashboard" className={secondaryButton}>
-              Dashboard
-            </Link>
-            <Link to="/documents" className={secondaryButton}>
-              Documents
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#B7C9D9] text-[#29333D]">
+      {/* Page header */}
+      
 
-      <div className="mx-auto max-w-7xl space-y-6 px-5 py-8 sm:px-8 sm:py-10">
+      <div className="mx-auto max-w-7xl space-y-6 px-5 py-7 sm:px-8 sm:py-9">
         <Link
           to={`/documents/${id}`}
-          className="text-sm font-medium text-[#52745F] hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-medium text-[#486984] transition-colors hover:text-[#20364B]"
         >
-          ← Back to document details
+          <span aria-hidden="true">←</span>
+          Back to document details
         </Link>
 
-        <section className="rounded-2xl border border-[#DFE6DE] bg-white p-6 sm:p-8">
-          <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
+        {/* Report introduction */}
+        <section className="rounded-xl border border-[#D2DEE8] bg-white p-6 shadow-sm sm:p-8">
+          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[#52745F]">
-                ANALYSIS REPORT
-              </p>
-              <h1 className="mt-2 break-words text-2xl font-semibold sm:text-3xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-md bg-[#EEF3F7] px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-[#486984]">
+                  Analysis report
+                </span>
+                <span className="text-xs text-[#8290A0]">
+                  SeeAstra document review
+                </span>
+              </div>
+
+              <h1 className="mt-4 break-words text-2xl font-semibold tracking-tight text-[#20364B] sm:text-3xl">
                 {safeText(documentName)}
               </h1>
-              <p className="mt-3 text-sm text-[#758278]">
+
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-[#718092]">
                 Review extracted information, possible issues and consistency
                 results before making a decision.
               </p>
-              <p className="mt-2 break-all text-xs text-[#879188]">
-                ID: {safeText(getId(document) || id)}
+
+              <p className="mt-3 break-all font-mono text-xs text-[#8290A0]">
+                Document ID: {safeText(getId(document) || id)}
               </p>
             </div>
 
             <button
               onClick={runAnalysis}
               disabled={analyzing}
-              className={primaryButton}
+              className={`${primaryButton} shrink-0`}
             >
-              {analyzing ? "Running analysis..." : "↻ Run analysis"}
+              {analyzing ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Running analysis...
+                </>
+              ) : (
+                <>
+                  <span aria-hidden="true">↻</span>
+                  Run analysis
+                </>
+              )}
             </button>
           </div>
         </section>
@@ -537,70 +596,84 @@ setConsistencyResult(
         {error && (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800"
+            className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-6 text-[#B83232]"
           >
-            {error}
+            <p className="font-semibold">Something went wrong</p>
+            <p className="mt-1">{error}</p>
           </div>
         )}
 
         {notice && (
           <div
             role="status"
-            className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800"
+            className="rounded-lg border border-[#B8D8C5] bg-[#EDF6F0] p-4 text-sm leading-6 text-[#397454]"
           >
-            {notice}
+            <p className="font-semibold">Analysis update</p>
+            <p className="mt-1">{notice}</p>
           </div>
         )}
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <ResultCard
-            label="Document status"
-            value={humanize(documentStatus)}
-            detail="Current status from the backend"
-          />
-          <ResultCard
-            label="Findings"
-            value={findings.length}
-            detail="Items returned by the analysis response"
-          />
-          <ResultCard
-            label="Missing fields"
-            value={missingFields.length}
-            detail="Potentially incomplete information"
-          />
-          <ResultCard
-            label="Analysis status"
-            value={humanize(analysisStatus)}
-            detail="Status reported by the analysis service"
-          />
+        {/* Summary metrics */}
+        <section aria-label="Analysis summary">
+          <div className="mb-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#647587]">
+              At a glance
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <ResultCard
+              label="Document status"
+              value={humanize(documentStatus)}
+              detail="Current status from the backend"
+            />
+            <ResultCard
+              label="AI findings"
+              value={findings.length}
+              detail="Items returned by the analysis response"
+              accent={findings.length > 0}
+            />
+            <ResultCard
+              label="Missing fields"
+              value={missingFields.length}
+              detail="Potentially incomplete information"
+              accent={missingFields.length > 0}
+            />
+            <ResultCard
+              label="Analysis status"
+              value={humanize(analysisStatus)}
+              detail="Status reported by the analysis service"
+            />
+          </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        {/* Extracted data and missing fields */}
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
           <DataSection
             title="Extracted fields"
             description="Information returned by the document extraction service."
           >
             {extractedFields.length ? (
-              <dl className="divide-y divide-[#EEF1EC]">
+              <dl className="divide-y divide-[#E7EDF2]">
                 {extractedFields.map(([key, value], index) => (
                   <div
                     key={`${key}-${index}`}
-                    className="grid gap-1 py-3 sm:grid-cols-3 sm:gap-4"
+                    className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-3 sm:gap-4"
                   >
-                    <dt className="text-sm font-medium text-[#52665A]">
+                    <dt className="text-sm font-medium text-[#526579]">
                       {humanize(key)}
                     </dt>
-                    <dd className="break-words text-sm leading-6 text-[#294538] sm:col-span-2">
+                    <dd className="break-words text-sm leading-6 text-[#29333D] sm:col-span-2">
                       {safeText(value)}
                     </dd>
                   </div>
                 ))}
               </dl>
             ) : (
-              <p className="rounded-xl bg-[#F1F5F0] p-4 text-sm leading-6 text-[#68786D]">
+              <EmptyState>
                 No extracted fields were returned. Run analysis or verify the
                 extraction response in the backend.
-              </p>
+              </EmptyState>
             )}
           </DataSection>
 
@@ -613,28 +686,38 @@ setConsistencyResult(
                 {missingFields.map((item, index) => (
                   <li
                     key={index}
-                    className="rounded-xl border border-amber-200 bg-amber-50 p-4"
+                    className="rounded-lg border border-amber-200 bg-amber-50/70 p-4"
                   >
-                    <p className="text-sm font-medium text-amber-900">
-                      {findingTitle(item, index)}
-                    </p>
-                    {typeof item === "object" && item !== null && (
-                      <p className="mt-1 text-sm leading-6 text-amber-800">
-                        {findingDescription(item)}
-                      </p>
-                    )}
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-[#A86416]">
+                        !
+                      </span>
+
+                      <div className="min-w-0">
+                        <p className="break-words text-sm font-semibold text-[#85520F]">
+                          {findingTitle(item, index)}
+                        </p>
+
+                        {typeof item === "object" && item !== null && (
+                          <p className="mt-1 break-words text-sm leading-6 text-[#936B35]">
+                            {findingDescription(item)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="rounded-xl bg-[#F1F5F0] p-4 text-sm leading-6 text-[#68786D]">
+              <EmptyState>
                 No missing fields were reported. This alone does not prove the
                 document is complete.
-              </p>
+              </EmptyState>
             )}
           </DataSection>
         </div>
 
+        {/* AI findings */}
         <DataSection
           title="AI findings"
           description="Potential issues for human verification. These findings are not final regulatory decisions."
@@ -644,19 +727,22 @@ setConsistencyResult(
               {findings.map((item, index) => (
                 <article
                   key={item?._id ?? item?.id ?? index}
-                  className="rounded-xl border border-[#E8EDE7] p-4 sm:p-5"
+                  className="rounded-lg border border-[#DCE5ED] p-4 transition-colors hover:bg-[#F9FBFC] sm:p-5"
                 >
-                  <div className="flex flex-col justify-between gap-3 sm:flex-row">
+                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                     <div className="min-w-0">
-                      <h3 className="break-words text-sm font-semibold text-[#294538]">
+                      <h3 className="break-words text-sm font-semibold text-[#20364B]">
                         {findingTitle(item, index)}
                       </h3>
-                      <p className="mt-2 break-words text-sm leading-6 text-[#68786D]">
+                      <p className="mt-2 break-words text-sm leading-6 text-[#647587]">
                         {findingDescription(item)}
                       </p>
                     </div>
+
                     <span
-                      className={`w-fit shrink-0 rounded-full border px-3 py-1 text-xs ${severityStyle(findingSeverity(item))}`}
+                      className={`w-fit shrink-0 rounded-full border px-3 py-1 text-xs font-medium ${severityStyle(
+                        findingSeverity(item)
+                      )}`}
                     >
                       {humanize(findingSeverity(item))}
                     </span>
@@ -665,27 +751,49 @@ setConsistencyResult(
               ))}
             </div>
           ) : (
-            <p className="rounded-xl bg-[#F1F5F0] p-5 text-sm leading-6 text-[#68786D]">
+            <EmptyState>
               No findings are available in the recognized response fields.
               Confirm that analysis has completed and inspect the saved
               analysisResult if you expected findings here.
-            </p>
+            </EmptyState>
           )}
         </DataSection>
 
+        {/* Cross-document consistency */}
         <DataSection
           title="Cross-document consistency check"
-          description="Select other processed documents to compare their extracted fields with this document. The backend validates ownership and eligibility."
+          description="Compare extracted fields across documents to help identify possible discrepancies."
         >
-          <p className="mb-4 text-sm text-[#52665A]">
-            Current document is included automatically. Select at least one
-            additional document; up to 50 documents can be checked together.
-          </p>
+          <div className="mb-5 rounded-lg border border-[#D2DEE8] bg-[#F4F7FA] p-4">
+            <p className="text-sm leading-6 text-[#526579]">
+              The current document is included automatically. Select at least
+              one additional document. Up to 50 documents can be checked
+              together.
+            </p>
+          </div>
+
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-[#20364B]">
+              Available documents
+            </h3>
+            {!loadingDocuments && (
+              <span className="text-xs text-[#8290A0]">
+                {eligibleDocuments.length} available
+              </span>
+            )}
+          </div>
 
           {loadingDocuments ? (
-            <p className="text-sm text-[#758278]">Loading documents...</p>
+            <div className="space-y-2">
+              {[1, 2, 3].map((item) => (
+                <div
+                  key={item}
+                  className="h-16 animate-pulse rounded-lg bg-[#EEF3F7]"
+                />
+              ))}
+            </div>
           ) : eligibleDocuments.length ? (
-            <div className="max-h-80 space-y-2 overflow-y-auto rounded-xl border border-[#DFE6DE] p-3">
+            <div className="max-h-80 space-y-1 overflow-y-auto rounded-lg border border-[#D2DEE8] bg-white p-2">
               {eligibleDocuments.map((item) => {
                 const documentId = String(getId(item));
                 const checked = selectedIds.includes(documentId);
@@ -693,80 +801,137 @@ setConsistencyResult(
                 return (
                   <label
                     key={documentId}
-                    className="flex cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-[#F1F5F0]"
+                    className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors ${
+                      checked
+                        ? "border-[#9CB4C9] bg-[#EEF3F7]"
+                        : "border-transparent hover:bg-[#F5F8FA]"
+                    }`}
                   >
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleDocument(documentId)}
-                      className="mt-1 h-4 w-4 accent-[#245642]"
+                      className="mt-1 h-4 w-4 shrink-0 accent-[#20364B]"
                     />
-                    <span className="min-w-0">
-                      <span className="block break-words text-sm font-medium text-[#294538]">
+
+                    <span className="min-w-0 flex-1">
+                      <span className="block break-words text-sm font-medium text-[#29333D]">
                         {safeText(getName(item))}
                       </span>
-                      <span className="mt-1 block text-xs text-[#879188]">
+                      <span className="mt-1 block text-xs text-[#8290A0]">
                         Status: {humanize(item.status ?? "Unknown")}
                       </span>
                     </span>
+
+                    {checked && (
+                      <span className="shrink-0 text-xs font-medium text-[#486984]">
+                        Selected
+                      </span>
+                    )}
                   </label>
                 );
               })}
             </div>
           ) : (
-            <p className="rounded-xl bg-[#F1F5F0] p-4 text-sm leading-6 text-[#68786D]">
+            <EmptyState>
               No other potentially processed documents were found in the
               document list. Upload and analyze another document first.
-            </p>
+            </EmptyState>
           )}
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="mt-4 flex flex-col gap-3 border-t border-[#E7EDF2] pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm text-[#647587]">
+              <strong className="text-[#20364B]">
+                {selectedIds.length + 1}
+              </strong>{" "}
+              document{selectedIds.length === 0 ? "" : "s"} selected in total
+            </span>
+
             <button
               onClick={runConsistencyCheck}
               disabled={checking || selectedIds.length === 0}
               className={primaryButton}
             >
-              {checking ? "Checking consistency..." : "Check consistency"}
+              {checking ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  Checking consistency...
+                </>
+              ) : (
+                "Check consistency"
+              )}
             </button>
-            <span className="text-xs text-[#758278]">
-              {selectedIds.length + 1} document
-              {selectedIds.length === 0 ? "" : "s"} selected in total
-            </span>
           </div>
 
           {consistencyError && (
-            <p role="alert" className="mt-4 text-sm leading-6 text-red-700">
+            <p
+              role="alert"
+              className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm leading-6 text-[#B83232]"
+            >
               {consistencyError}
             </p>
           )}
 
           {consistencyResult && (
-            <div className="mt-6 rounded-xl border border-[#DFE6DE] bg-[#FAFBF9] p-5">
-              <h3 className="font-semibold text-[#294538]">
-                Consistency response
-              </h3>
-              <p className="mt-1 text-sm leading-6 text-[#758278]">
-                Review this response as a report from the backend. Verify
-                important discrepancies against the original documents.
-              </p>
-              <pre className="mt-4 max-h-[28rem] overflow-auto whitespace-pre-wrap break-words rounded-lg bg-white p-4 text-xs leading-5 text-[#294538]">
-                {JSON.stringify(consistencyResult, null, 2)}
-              </pre>
+            <div className="mt-6 overflow-hidden rounded-lg border border-[#D2DEE8]">
+              <div className="border-b border-[#D2DEE8] bg-[#EEF3F7] p-4 sm:p-5">
+                <h3 className="font-semibold text-[#20364B]">
+                  Consistency response
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-[#647587]">
+                  Review the backend report and verify important discrepancies
+                  against the original documents.
+                </p>
+              </div>
+
+              <div className="bg-[#F8FAFC] p-3 sm:p-5">
+                <pre className="max-h-[28rem] overflow-auto whitespace-pre-wrap break-words rounded-lg border border-[#DCE5ED] bg-white p-4 font-mono text-xs leading-5 text-[#29333D]">
+                  {JSON.stringify(consistencyResult, null, 2)}
+                </pre>
+              </div>
             </div>
           )}
         </DataSection>
 
-        <footer className="rounded-xl border border-[#DFE6DE] bg-[#F1F5F0] p-5">
-          <h2 className="text-sm font-semibold text-[#294538]">
-            Human review and auditability
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-[#617267]">
-            AI results support reviewers; they do not establish fraud or
-            determine approval or rejection by themselves. Record the final
-            decision through the authorised review workflow.
-          </p>
+        {/* Human review notice */}
+        <footer className="rounded-xl border border-[#D2DEE8] bg-[#EAF0F5] p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#486984]">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                <path
+                  d="M12 8v4m0 4h.01M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3l-7.5-13.1a2 2 0 0 0-3.4 0Z"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+
+            <div>
+              <h2 className="text-sm font-semibold text-[#20364B]">
+                Human review and auditability
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[#526579]">
+                AI results support reviewers; they do not establish fraud or
+                determine approval or rejection by themselves. Record the
+                final decision through the authorised review workflow.
+              </p>
+            </div>
+          </div>
         </footer>
+
+        <div className="flex flex-col justify-between gap-2 border-t border-[#D2DEE8] pt-5 text-xs text-[#8290A0] sm:flex-row sm:items-center">
+          <span>SeeAstra AI · Document validation and compliance review</span>
+          <span>AI-assisted analysis · Human-led decisions</span>
+        </div>
       </div>
     </main>
   );
 }
+
