@@ -1,5 +1,6 @@
 
 import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -19,25 +20,26 @@ app.disable("x-powered-by");
 
 app.use(helmet());
 
-
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL,
+  "https://seeastra-ai.onrender.com",
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests without an Origin header (e.g. health checks)
+      // Allow requests without an Origin header, such as health checks.
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
+      console.error("Blocked CORS origin:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
+    credentials: true,
   })
 );
-
 
 app.use(express.json({ limit: "1mb" }));
 
